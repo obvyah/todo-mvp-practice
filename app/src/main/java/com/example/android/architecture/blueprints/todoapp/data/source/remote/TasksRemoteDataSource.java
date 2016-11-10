@@ -76,6 +76,18 @@ public class TasksRemoteDataSource implements TasksDataSource {
         }, SERVICE_LATENCY_IN_MILLIS);
     }
 
+    @Override
+    public void getTasks(final @NonNull LoadTasksCallback callback, String orderBy) {
+        // Simulate network by delaying the execution.
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
+            }
+        }, SERVICE_LATENCY_IN_MILLIS);
+    }
+
     /**
      * Note: {@link GetTaskCallback#onDataNotAvailable()} is never fired. In a real remote data
      * source implementation, this would be fired if the server can't be contacted or the server
@@ -102,7 +114,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void completeTask(@NonNull Task task) {
-        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
+        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true, task.getPriority());
         TASKS_SERVICE_DATA.put(task.getId(), completedTask);
     }
 
@@ -149,5 +161,11 @@ public class TasksRemoteDataSource implements TasksDataSource {
     @Override
     public void deleteTask(@NonNull String taskId) {
         TASKS_SERVICE_DATA.remove(taskId);
+    }
+
+    @Override
+    public void changeTaskPriority(@NonNull Task task) {
+        Task priorityTask = new Task(task.getTitle(), task.getDescription(), task.getId(), task.isCompleted(), task.getPriority());
+        TASKS_SERVICE_DATA.put(task.getId(), priorityTask);
     }
 }

@@ -40,6 +40,8 @@ public final class Task {
 
     private final boolean mCompleted;
 
+    private int mPriority;
+
     /**
      * Use this constructor to create a new active Task.
      *
@@ -47,7 +49,7 @@ public final class Task {
      * @param description description of the task
      */
     public Task(@Nullable String title, @Nullable String description) {
-        this(title, description, UUID.randomUUID().toString(), false);
+        this(title, description, UUID.randomUUID().toString(), false, TaskPriority.MEDIUM);
     }
 
     /**
@@ -59,7 +61,7 @@ public final class Task {
      * @param id          id of the task
      */
     public Task(@Nullable String title, @Nullable String description, @NonNull String id) {
-        this(title, description, id, false);
+        this(title, description, id, false, TaskPriority.MEDIUM);
     }
 
     /**
@@ -70,7 +72,7 @@ public final class Task {
      * @param completed   true if the task is completed, false if it's active
      */
     public Task(@Nullable String title, @Nullable String description, boolean completed) {
-        this(title, description, UUID.randomUUID().toString(), completed);
+        this(title, description, UUID.randomUUID().toString(), completed, TaskPriority.MEDIUM);
     }
 
     /**
@@ -83,11 +85,12 @@ public final class Task {
      * @param completed   true if the task is completed, false if it's active
      */
     public Task(@Nullable String title, @Nullable String description,
-                @NonNull String id, boolean completed) {
+                @NonNull String id, boolean completed, int priority) {
         mId = id;
         mTitle = title;
         mDescription = description;
         mCompleted = completed;
+        mPriority = priority;
     }
 
     @NonNull
@@ -120,6 +123,14 @@ public final class Task {
 
     public boolean isActive() {
         return !mCompleted;
+    }
+
+    public int getPriority() {
+        return mPriority;
+    }
+
+    public void setmPriority(int mPriority) {
+        this.mPriority = mPriority;
     }
 
     public boolean isEmpty() {

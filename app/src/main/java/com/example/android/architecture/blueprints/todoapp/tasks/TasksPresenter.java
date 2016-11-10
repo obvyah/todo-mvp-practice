@@ -67,7 +67,8 @@ public class TasksPresenter implements TasksContract.Presenter {
     @Override
     public void loadTasks(boolean forceUpdate) {
         // Simplification for sample: a network reload will be forced on first load.
-        loadTasks(forceUpdate || mFirstLoad, true);
+        //loadTasks(forceUpdate || mFirstLoad, true);
+        loadTasks(forceUpdate, true);
         mFirstLoad = false;
     }
 
@@ -231,6 +232,15 @@ public class TasksPresenter implements TasksContract.Presenter {
     @Override
     public TasksFilterType getFiltering() {
         return mCurrentFiltering;
+    }
+
+    @Override
+    public void changeTaskPriority(Task priorityTask, int priority) {
+        checkNotNull(priorityTask, "priorityTask cannot be null!");
+        priorityTask.setmPriority(priority);
+        mTasksRepository.changeTaskPriority(priorityTask);
+        mTasksView.showPriorityChangeComplete();
+        loadTasks(false, false);
     }
 
 }

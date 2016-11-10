@@ -39,6 +39,9 @@
     <string name="no_data">No data</string>
     <string name="loading">LOADING</string>
 
+    <string name="successfully_change_task_priority_message">Priority changed</string>
+    <string name="choose_priority">優先度</string>
+
     <string-array name="list_tasks_array">
         <item>@string/nav_all</item>
         <item>@string/nav_active</item>
