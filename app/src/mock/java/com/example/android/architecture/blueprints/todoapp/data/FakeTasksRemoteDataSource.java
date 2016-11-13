@@ -47,6 +47,11 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void getTasks(@NonNull LoadTasksCallback callback) {
+        getTasks(null, callback);
+    }
+
+    @Override
+    public void getTasks(String orderBy, @NonNull LoadTasksCallback callback) {
         callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
     }
 
@@ -63,7 +68,7 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void completeTask(@NonNull Task task) {
-        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
+        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true, task.getPriority());
         TASKS_SERVICE_DATA.put(task.getId(), completedTask);
     }
 
@@ -102,6 +107,11 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     @Override
     public void deleteTask(@NonNull String taskId) {
         TASKS_SERVICE_DATA.remove(taskId);
+    }
+
+    @Override
+    public void changeTaskPriority(@NonNull Task task) {
+        //TODO
     }
 
     @Override

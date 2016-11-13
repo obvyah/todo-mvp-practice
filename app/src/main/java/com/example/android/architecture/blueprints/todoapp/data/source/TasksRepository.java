@@ -16,8 +16,6 @@
 
 package com.example.android.architecture.blueprints.todoapp.data.source;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -28,6 +26,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Concrete implementation to load tasks from the data sources into a cache.
@@ -94,20 +94,19 @@ public class TasksRepository implements TasksDataSource {
      */
     @Override
     public void getTasks(@NonNull final LoadTasksCallback callback) {
-        checkNotNull(callback);
+        getTasks(null, callback);
+    }
 
-        // Respond immediately with cache if available and not dirty
-        if (mCachedTasks != null && !mCacheIsDirty) {
-            callback.onTasksLoaded(new ArrayList<>(mCachedTasks.values()));
-            return;
-        }
+    @Override
+    public void getTasks(final String orderBy, @NonNull final LoadTasksCallback callback) {
+        checkNotNull(callback);
 
         if (mCacheIsDirty) {
             // If the cache is dirty we need to fetch new data from the network.
-            getTasksFromRemoteDataSource(callback);
+            getTasksFromRemoteDataSource(orderBy, callback);
         } else {
             // Query the local storage if available. If not, query the network.
-            mTasksLocalDataSource.getTasks(new LoadTasksCallback() {
+            mTasksLocalDataSource.getTasks(orderBy, new LoadTasksCallback() {
                 @Override
                 public void onTasksLoaded(List<Task> tasks) {
                     refreshCache(tasks);
@@ -116,7 +115,7 @@ public class TasksRepository implements TasksDataSource {
 
                 @Override
                 public void onDataNotAvailable() {
-                    getTasksFromRemoteDataSource(callback);
+                    getTasksFromRemoteDataSource(orderBy, callback);
                 }
             });
         }
@@ -141,7 +140,7 @@ public class TasksRepository implements TasksDataSource {
         mTasksRemoteDataSource.completeTask(task);
         mTasksLocalDataSource.completeTask(task);
 
-        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
+        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true, task.getPriority());
 
         // Do in memory cache update to keep the app UI up to date
         if (mCachedTasks == null) {
@@ -265,8 +264,23 @@ public class TasksRepository implements TasksDataSource {
         mCachedTasks.remove(taskId);
     }
 
-    private void getTasksFromRemoteDataSource(@NonNull final LoadTasksCallback callback) {
-        mTasksRemoteDataSource.getTasks(new LoadTasksCallback() {
+    @Override
+    public void changeTaskPriority(@NonNull Task task) {
+        checkNotNull(task);
+        mTasksRemoteDataSource.changeTaskPriority(task);
+        mTasksLocalDataSource.changeTaskPriority(task);
+
+        Task priorityTask = new Task(task.getTitle(), task.getDescription(), task.getId(), task.isCompleted(), task.getPriority());
+
+        // Do in memory cache update to keep the app UI up to date
+        if (mCachedTasks == null) {
+            mCachedTasks = new LinkedHashMap<>();
+        }
+        mCachedTasks.put(task.getId(), priorityTask);
+    }
+
+    private void getTasksFromRemoteDataSource(String orderBy, @NonNull final LoadTasksCallback callback) {
+        mTasksRemoteDataSource.getTasks(orderBy, new LoadTasksCallback() {
             @Override
             public void onTasksLoaded(List<Task> tasks) {
                 refreshCache(tasks);

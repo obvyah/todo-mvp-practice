@@ -67,6 +67,12 @@ public class TasksRemoteDataSource implements TasksDataSource {
     @Override
     public void getTasks(final @NonNull LoadTasksCallback callback) {
         // Simulate network by delaying the execution.
+        getTasks(null, callback);
+    }
+
+    @Override
+    public void getTasks(String orderBy, final @NonNull LoadTasksCallback callback) {
+        // Simulate network by delaying the execution.
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -102,7 +108,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void completeTask(@NonNull Task task) {
-        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
+        Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true, task.getPriority());
         TASKS_SERVICE_DATA.put(task.getId(), completedTask);
     }
 
@@ -149,5 +155,11 @@ public class TasksRemoteDataSource implements TasksDataSource {
     @Override
     public void deleteTask(@NonNull String taskId) {
         TASKS_SERVICE_DATA.remove(taskId);
+    }
+
+    @Override
+    public void changeTaskPriority(@NonNull Task task) {
+        Task priorityTask = new Task(task.getTitle(), task.getDescription(), task.getId(), task.isCompleted(), task.getPriority());
+        TASKS_SERVICE_DATA.put(task.getId(), priorityTask);
     }
 }
