@@ -1,5 +1,7 @@
 package com.example.android.architecture.blueprints.todoapp.data;
 
+import com.example.android.architecture.blueprints.todoapp.data.source.local.TasksPersistenceContract;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,5 +21,16 @@ public class TaskPriority {
         PRIORITY_TYPES.put(HIGH, "HIGH");
         PRIORITY_TYPES.put(MEDIUM, "MEDIUM");
         PRIORITY_TYPES.put(LOW, "LOW");
+    }
+
+    public static String KEY_PRIORITY = TasksPersistenceContract.TaskEntry.COLUMN_NAME_PRIORITY;
+
+    public static abstract class OrderBySort{
+        public static final String DESC = "DESC";
+        public static final String ASC = "ASC";
+    }
+
+    public static String orderByFormatted(String sort){
+        return KEY_PRIORITY+" "+sort;
     }
 }

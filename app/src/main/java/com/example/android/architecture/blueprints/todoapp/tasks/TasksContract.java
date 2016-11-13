@@ -65,6 +65,8 @@ public interface TasksContract {
 
         void showFilteringPopUpMenu();
 
+        void showOrderingPopUpMenu();
+
         void showPriorityPicker(Task task);
 
         void showPriorityChangeComplete();
@@ -91,5 +93,9 @@ public interface TasksContract {
         TasksFilterType getFiltering();
 
         void changeTaskPriority(Task task, int priority);
+
+        void setPriorityOrdering(String orderBy);
+
+        String getPriorityOrdering();
     }
 }

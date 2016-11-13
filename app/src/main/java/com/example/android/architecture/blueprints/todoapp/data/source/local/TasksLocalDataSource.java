@@ -21,6 +21,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
@@ -60,47 +61,7 @@ public class TasksLocalDataSource implements TasksDataSource {
      */
     @Override
     public void getTasks(@NonNull LoadTasksCallback callback) {
-        List<Task> tasks = new ArrayList<Task>();
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        String[] projection = {
-                TaskEntry.COLUMN_NAME_ENTRY_ID,
-                TaskEntry.COLUMN_NAME_TITLE,
-                TaskEntry.COLUMN_NAME_DESCRIPTION,
-                TaskEntry.COLUMN_NAME_COMPLETED,
-                TaskEntry.COLUMN_NAME_PRIORITY
-        };
-
-        Cursor c = db.query(
-                TaskEntry.TABLE_NAME, projection, null, null, null, null, null);
-
-        if (c != null && c.getCount() > 0) {
-            while (c.moveToNext()) {
-                String itemId = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_ENTRY_ID));
-                String title = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_TITLE));
-                String description =
-                        c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION));
-                boolean completed =
-                        c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
-                int priority =
-                        c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_PRIORITY));
-                Task task = new Task(title, description, itemId, completed, priority);
-                tasks.add(task);
-            }
-        }
-        if (c != null) {
-            c.close();
-        }
-
-        db.close();
-
-        if (tasks.isEmpty()) {
-            // This will be called if the table is new or just empty.
-            callback.onDataNotAvailable();
-        } else {
-            callback.onTasksLoaded(tasks);
-        }
-
+        getTasks(null, callback);
     }
 
 
@@ -109,7 +70,7 @@ public class TasksLocalDataSource implements TasksDataSource {
      * or the table is empty.
      */
     @Override
-    public void getTasks(@NonNull LoadTasksCallback callback, String orderBy) {
+    public void getTasks(String orderBy, @NonNull LoadTasksCallback callback) {
         List<Task> tasks = new ArrayList<Task>();
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -121,8 +82,12 @@ public class TasksLocalDataSource implements TasksDataSource {
                 TaskEntry.COLUMN_NAME_PRIORITY
         };
 
+        Log.e("PRIORITY", "ORDER BY: "+orderBy);
+
         Cursor c = db.query(
-                TaskEntry.TABLE_NAME, projection, null, null, null, null, orderBy);
+                TaskEntry.TABLE_NAME, projection, null, null, null, null, orderBy, null);
+
+        Log.e("PRIORITY", "ORDER BY: "+c.toString());
 
         if (c != null && c.getCount() > 0) {
             while (c.moveToNext()) {
@@ -134,6 +99,7 @@ public class TasksLocalDataSource implements TasksDataSource {
                         c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
                 int priority =
                         c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_PRIORITY));
+                Log.e("PRIORITY", "priority: "+priority);
                 Task task = new Task(title, description, itemId, completed, priority);
                 tasks.add(task);
             }

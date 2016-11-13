@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.example.android.architecture.blueprints.todoapp.data.TaskPriority;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
@@ -41,6 +42,8 @@ public class TasksPresenter implements TasksContract.Presenter {
     private final TasksContract.View mTasksView;
 
     private TasksFilterType mCurrentFiltering = TasksFilterType.ALL_TASKS;
+
+    private String mPriorityOrderBy = TaskPriority.orderByFormatted(TaskPriority.OrderBySort.ASC);
 
     private boolean mFirstLoad = true;
 
@@ -88,7 +91,7 @@ public class TasksPresenter implements TasksContract.Presenter {
         // that the app is busy until the response is handled.
         EspressoIdlingResource.increment(); // App is busy until further notice
 
-        mTasksRepository.getTasks(new TasksDataSource.LoadTasksCallback() {
+        mTasksRepository.getTasks(mPriorityOrderBy, new TasksDataSource.LoadTasksCallback() {
             @Override
             public void onTasksLoaded(List<Task> tasks) {
                 List<Task> tasksToShow = new ArrayList<Task>();
@@ -241,6 +244,16 @@ public class TasksPresenter implements TasksContract.Presenter {
         mTasksRepository.changeTaskPriority(priorityTask);
         mTasksView.showPriorityChangeComplete();
         loadTasks(false, false);
+    }
+
+    @Override
+    public void setPriorityOrdering(String orderBy) {
+        mPriorityOrderBy = orderBy;
+    }
+
+    @Override
+    public String getPriorityOrdering() {
+        return mPriorityOrderBy;
     }
 
 }

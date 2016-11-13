@@ -67,17 +67,11 @@ public class TasksRemoteDataSource implements TasksDataSource {
     @Override
     public void getTasks(final @NonNull LoadTasksCallback callback) {
         // Simulate network by delaying the execution.
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
-            }
-        }, SERVICE_LATENCY_IN_MILLIS);
+        getTasks(null, callback);
     }
 
     @Override
-    public void getTasks(final @NonNull LoadTasksCallback callback, String orderBy) {
+    public void getTasks(String orderBy, final @NonNull LoadTasksCallback callback) {
         // Simulate network by delaying the execution.
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {

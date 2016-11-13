@@ -47,12 +47,12 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
 
     @Override
     public void getTasks(@NonNull LoadTasksCallback callback) {
-        callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
+        getTasks(null, callback);
     }
 
     @Override
-    public void getTasks(@NonNull LoadTasksCallback callback, String orderBy) {
-        //TODO
+    public void getTasks(String orderBy, @NonNull LoadTasksCallback callback) {
+        callback.onTasksLoaded(Lists.newArrayList(TASKS_SERVICE_DATA.values()));
     }
 
     @Override

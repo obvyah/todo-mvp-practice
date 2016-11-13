@@ -175,6 +175,9 @@ public class TasksFragment extends Fragment implements TasksContract.View {
             case R.id.menu_refresh:
                 mPresenter.loadTasks(true);
                 break;
+            case R.id.menu_order:
+                showOrderingPopUpMenu();
+                break;
         }
         return true;
     }
@@ -200,6 +203,32 @@ public class TasksFragment extends Fragment implements TasksContract.View {
                         break;
                     default:
                         mPresenter.setFiltering(TasksFilterType.ALL_TASKS);
+                        break;
+                }
+                mPresenter.loadTasks(false);
+                return true;
+            }
+        });
+
+        popup.show();
+    }
+
+    @Override
+    public void showOrderingPopUpMenu() {
+        PopupMenu popup = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_order));
+        popup.getMenuInflater().inflate(R.menu.order_tasks, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.desc:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.DESC));
+                        break;
+                    case R.id.asc:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.ASC));
+                        break;
+                    default:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.ASC));
                         break;
                 }
                 mPresenter.loadTasks(false);
@@ -441,6 +470,22 @@ public class TasksFragment extends Fragment implements TasksContract.View {
             TextView priorityTV = (TextView) rowView.findViewById(R.id.priority);
             priorityTV.setText(TaskPriority.PRIORITY_TYPES.get(task.getPriority()));
             Log.e("priority", TaskPriority.PRIORITY_TYPES.get(task.getPriority()));
+            int priorityColor = 0;
+            switch (task.getPriority()){
+                case TaskPriority.HIGH:
+                    priorityColor = R.color.priority_high;
+                    break;
+                case TaskPriority.MEDIUM:
+                    priorityColor = R.color.priority_medium;
+                    break;
+                case TaskPriority.LOW:
+                    priorityColor = R.color.priority_low;
+                    break;
+                default:
+                    priorityColor = R.color.priority_medium;
+                    break;
+            }
+            priorityTV.setTextColor(viewGroup.getContext().getResources().getColor(priorityColor));
 
             // Active/completed task UI
             completeCB.setChecked(task.isCompleted());

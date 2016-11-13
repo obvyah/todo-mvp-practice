@@ -94,20 +94,19 @@ public class TasksRepository implements TasksDataSource {
      */
     @Override
     public void getTasks(@NonNull final LoadTasksCallback callback) {
-        checkNotNull(callback);
+        getTasks(null, callback);
+    }
 
-        // Respond immediately with cache if available and not dirty
-        if (mCachedTasks != null && !mCacheIsDirty) {
-            callback.onTasksLoaded(new ArrayList<>(mCachedTasks.values()));
-            return;
-        }
+    @Override
+    public void getTasks(final String orderBy, @NonNull final LoadTasksCallback callback) {
+        checkNotNull(callback);
 
         if (mCacheIsDirty) {
             // If the cache is dirty we need to fetch new data from the network.
-            getTasksFromRemoteDataSource(callback);
+            getTasksFromRemoteDataSource(orderBy, callback);
         } else {
             // Query the local storage if available. If not, query the network.
-            mTasksLocalDataSource.getTasks(new LoadTasksCallback() {
+            mTasksLocalDataSource.getTasks(orderBy, new LoadTasksCallback() {
                 @Override
                 public void onTasksLoaded(List<Task> tasks) {
                     refreshCache(tasks);
@@ -116,15 +115,10 @@ public class TasksRepository implements TasksDataSource {
 
                 @Override
                 public void onDataNotAvailable() {
-                    getTasksFromRemoteDataSource(callback);
+                    getTasksFromRemoteDataSource(orderBy, callback);
                 }
             });
         }
-    }
-
-    @Override
-    public void getTasks(@NonNull LoadTasksCallback callback, String orderBy) {
-        //TODO
     }
 
     @Override
@@ -285,8 +279,8 @@ public class TasksRepository implements TasksDataSource {
         mCachedTasks.put(task.getId(), priorityTask);
     }
 
-    private void getTasksFromRemoteDataSource(@NonNull final LoadTasksCallback callback) {
-        mTasksRemoteDataSource.getTasks(new LoadTasksCallback() {
+    private void getTasksFromRemoteDataSource(String orderBy, @NonNull final LoadTasksCallback callback) {
+        mTasksRemoteDataSource.getTasks(orderBy, new LoadTasksCallback() {
             @Override
             public void onTasksLoaded(List<Task> tasks) {
                 refreshCache(tasks);

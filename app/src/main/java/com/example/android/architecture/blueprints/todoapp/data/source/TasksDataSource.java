@@ -48,7 +48,7 @@ public interface TasksDataSource {
 
     void getTasks(@NonNull LoadTasksCallback callback);
 
-    void getTasks(@NonNull LoadTasksCallback callback, String orderBy);
+    void getTasks(String orderBy, @NonNull LoadTasksCallback callback);
 
     void getTask(@NonNull String taskId, @NonNull GetTaskCallback callback);
 
