@@ -21,6 +21,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
@@ -60,6 +61,16 @@ public class TasksLocalDataSource implements TasksDataSource {
      */
     @Override
     public void getTasks(@NonNull LoadTasksCallback callback) {
+        getTasks(null, callback);
+    }
+
+
+    /**
+     * Note: {@link LoadTasksCallback#onDataNotAvailable()} is fired if the database doesn't exist
+     * or the table is empty.
+     */
+    @Override
+    public void getTasks(String orderBy, @NonNull LoadTasksCallback callback) {
         List<Task> tasks = new ArrayList<Task>();
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -67,11 +78,16 @@ public class TasksLocalDataSource implements TasksDataSource {
                 TaskEntry.COLUMN_NAME_ENTRY_ID,
                 TaskEntry.COLUMN_NAME_TITLE,
                 TaskEntry.COLUMN_NAME_DESCRIPTION,
-                TaskEntry.COLUMN_NAME_COMPLETED
+                TaskEntry.COLUMN_NAME_COMPLETED,
+                TaskEntry.COLUMN_NAME_PRIORITY
         };
 
+        Log.e("PRIORITY", "ORDER BY: "+orderBy);
+
         Cursor c = db.query(
-                TaskEntry.TABLE_NAME, projection, null, null, null, null, null);
+                TaskEntry.TABLE_NAME, projection, null, null, null, null, orderBy, null);
+
+        Log.e("PRIORITY", "ORDER BY: "+c.toString());
 
         if (c != null && c.getCount() > 0) {
             while (c.moveToNext()) {
@@ -81,7 +97,10 @@ public class TasksLocalDataSource implements TasksDataSource {
                         c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION));
                 boolean completed =
                         c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
-                Task task = new Task(title, description, itemId, completed);
+                int priority =
+                        c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_PRIORITY));
+                Log.e("PRIORITY", "priority: "+priority);
+                Task task = new Task(title, description, itemId, completed, priority);
                 tasks.add(task);
             }
         }
@@ -100,6 +119,7 @@ public class TasksLocalDataSource implements TasksDataSource {
 
     }
 
+
     /**
      * Note: {@link GetTaskCallback#onDataNotAvailable()} is fired if the {@link Task} isn't
      * found.
@@ -112,7 +132,8 @@ public class TasksLocalDataSource implements TasksDataSource {
                 TaskEntry.COLUMN_NAME_ENTRY_ID,
                 TaskEntry.COLUMN_NAME_TITLE,
                 TaskEntry.COLUMN_NAME_DESCRIPTION,
-                TaskEntry.COLUMN_NAME_COMPLETED
+                TaskEntry.COLUMN_NAME_COMPLETED,
+                TaskEntry.COLUMN_NAME_PRIORITY
         };
 
         String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
@@ -131,7 +152,9 @@ public class TasksLocalDataSource implements TasksDataSource {
                     c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION));
             boolean completed =
                     c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1;
-            task = new Task(title, description, itemId, completed);
+            int priority =
+                    c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_PRIORITY));
+            task = new Task(title, description, itemId, completed, priority);
         }
         if (c != null) {
             c.close();
@@ -156,6 +179,7 @@ public class TasksLocalDataSource implements TasksDataSource {
         values.put(TaskEntry.COLUMN_NAME_TITLE, task.getTitle());
         values.put(TaskEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
         values.put(TaskEntry.COLUMN_NAME_COMPLETED, task.isCompleted());
+        values.put(TaskEntry.COLUMN_NAME_PRIORITY, task.getPriority());
 
         db.insert(TaskEntry.TABLE_NAME, null, values);
 
@@ -239,6 +263,21 @@ public class TasksLocalDataSource implements TasksDataSource {
         String[] selectionArgs = { taskId };
 
         db.delete(TaskEntry.TABLE_NAME, selection, selectionArgs);
+
+        db.close();
+    }
+
+    @Override
+    public void changeTaskPriority(@NonNull Task task) {
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(TaskEntry.COLUMN_NAME_PRIORITY, task.getPriority());
+
+        String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
+        String[] selectionArgs = { task.getId() };
+
+        db.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
 
         db.close();
     }

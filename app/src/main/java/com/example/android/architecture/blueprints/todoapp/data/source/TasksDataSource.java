@@ -48,6 +48,8 @@ public interface TasksDataSource {
 
     void getTasks(@NonNull LoadTasksCallback callback);
 
+    void getTasks(String orderBy, @NonNull LoadTasksCallback callback);
+
     void getTask(@NonNull String taskId, @NonNull GetTaskCallback callback);
 
     void saveTask(@NonNull Task task);
@@ -67,4 +69,7 @@ public interface TasksDataSource {
     void deleteAllTasks();
 
     void deleteTask(@NonNull String taskId);
+
+    void changeTaskPriority(@NonNull Task task);
+
 }

@@ -64,6 +64,12 @@ public interface TasksContract {
         boolean isActive();
 
         void showFilteringPopUpMenu();
+
+        void showOrderingPopUpMenu();
+
+        void showPriorityPicker(Task task);
+
+        void showPriorityChangeComplete();
     }
 
     interface Presenter extends BasePresenter {
@@ -85,5 +91,11 @@ public interface TasksContract {
         void setFiltering(TasksFilterType requestType);
 
         TasksFilterType getFiltering();
+
+        void changeTaskPriority(Task task, int priority);
+
+        void setPriorityOrdering(String orderBy);
+
+        String getPriorityOrdering();
     }
 }

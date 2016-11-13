@@ -16,6 +16,7 @@
 
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,7 +26,9 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,6 +45,7 @@ import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.example.android.architecture.blueprints.todoapp.data.TaskPriority;
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity;
 
 import java.util.ArrayList;
@@ -171,6 +175,9 @@ public class TasksFragment extends Fragment implements TasksContract.View {
             case R.id.menu_refresh:
                 mPresenter.loadTasks(true);
                 break;
+            case R.id.menu_order:
+                showOrderingPopUpMenu();
+                break;
         }
         return true;
     }
@@ -206,6 +213,59 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         popup.show();
     }
 
+    @Override
+    public void showOrderingPopUpMenu() {
+        PopupMenu popup = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_order));
+        popup.getMenuInflater().inflate(R.menu.order_tasks, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.desc:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.DESC));
+                        break;
+                    case R.id.asc:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.ASC));
+                        break;
+                    default:
+                        mPresenter.setPriorityOrdering(TaskPriority.orderByFormatted(TaskPriority.OrderBySort.ASC));
+                        break;
+                }
+                mPresenter.loadTasks(false);
+                return true;
+            }
+        });
+
+        popup.show();
+    }
+
+    @Override
+    public void showPriorityPicker(final Task task) {
+        // 1. Instantiate an AlertDialog.Builder with its constructor
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        // 2. Chain together various setter methods to set the dialog characteristics
+        CharSequence[] options = new CharSequence[TaskPriority.PRIORITY_TYPES.size()];
+        for (int i=0; i<TaskPriority.PRIORITY_TYPES.size(); i++) {
+            options[i] = TaskPriority.PRIORITY_TYPES.get(i);
+        }
+        builder.setTitle(R.string.choose_priority)
+                .setItems(options, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        mPresenter.changeTaskPriority(task, which);
+                    }
+                });
+
+        // 3. Get the AlertDialog from create()
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    @Override
+    public void showPriorityChangeComplete() {
+        showMessage(getString(R.string.successfully_change_task_priority_message));
+    }
+
     /**
      * Listener for clicks on tasks in the ListView.
      */
@@ -223,6 +283,11 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         @Override
         public void onActivateTaskClick(Task activatedTask) {
             mPresenter.activateTask(activatedTask);
+        }
+
+        @Override
+        public void onPriorityClick(Task task) {
+            showPriorityPicker(task);
         }
     };
 
@@ -401,6 +466,27 @@ public class TasksFragment extends Fragment implements TasksContract.View {
 
             CheckBox completeCB = (CheckBox) rowView.findViewById(R.id.complete);
 
+            //set task priority
+            TextView priorityTV = (TextView) rowView.findViewById(R.id.priority);
+            priorityTV.setText(TaskPriority.PRIORITY_TYPES.get(task.getPriority()));
+            Log.e("priority", TaskPriority.PRIORITY_TYPES.get(task.getPriority()));
+            int priorityColor = 0;
+            switch (task.getPriority()){
+                case TaskPriority.HIGH:
+                    priorityColor = R.color.priority_high;
+                    break;
+                case TaskPriority.MEDIUM:
+                    priorityColor = R.color.priority_medium;
+                    break;
+                case TaskPriority.LOW:
+                    priorityColor = R.color.priority_low;
+                    break;
+                default:
+                    priorityColor = R.color.priority_medium;
+                    break;
+            }
+            priorityTV.setTextColor(viewGroup.getContext().getResources().getColor(priorityColor));
+
             // Active/completed task UI
             completeCB.setChecked(task.isCompleted());
             if (task.isCompleted()) {
@@ -422,6 +508,13 @@ public class TasksFragment extends Fragment implements TasksContract.View {
                 }
             });
 
+            priorityTV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mItemListener.onPriorityClick(task);
+                }
+            });
+
             rowView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -440,6 +533,8 @@ public class TasksFragment extends Fragment implements TasksContract.View {
         void onCompleteTaskClick(Task completedTask);
 
         void onActivateTaskClick(Task activatedTask);
+
+        void onPriorityClick(Task task);
     }
 
 }
